@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
 import { Observable, of, BehaviorSubject, map, startWith, catchError } from 'rxjs';
 import { DataState } from 'src/app/enum/datastate.enum';
 import { EventType } from 'src/app/enum/event-type.enum';
@@ -11,10 +10,10 @@ import { UserService } from 'src/app/service/user.service';
 
 @Component({
   selector: 'app-profile',
-  templateUrl: './profile.component.html',
-  styleUrls: ['./profile.component.css']
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.css']
 })
-export class ProfileComponent implements OnInit {
+export class UserComponent implements OnInit {
   profileState$: Observable<State<CustomHttpResponse<Profile>>>;
   private dataSubject = new BehaviorSubject<CustomHttpResponse<Profile>>(null);
   private isLoadingSubject = new BehaviorSubject<boolean>(false);
