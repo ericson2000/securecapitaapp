@@ -5,7 +5,12 @@ import { UserComponent } from './user/user.component';
 
 
 const userRoutes: Routes = [
-    { path: 'profile', component: UserComponent, canActivate: [AuthenticationGuard] },
+    // sans le lazy loading
+    // { path: 'profile', component: UserComponent, canActivate: [AuthenticationGuard] },
+    // avec le lazy loading
+    {
+      path:'', children: [{ path: '', component: UserComponent, canActivate: [AuthenticationGuard]}]
+    },
 ];
 
 @NgModule({

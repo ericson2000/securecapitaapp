@@ -1,5 +1,5 @@
 import { HttpEvent, HttpEventType } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Router } from '@angular/router';
 import { Observable, BehaviorSubject, map, startWith, catchError, of, switchMap } from 'rxjs';
@@ -7,12 +7,14 @@ import { DataState } from 'src/app/enum/datastate.enum';
 import { AccountType, VerifyState } from 'src/app/interface/appstates';
 import { Customer } from 'src/app/interface/customer';
 import { User } from 'src/app/interface/user';
+import { NotificationService } from 'src/app/service/notification.service';
 import { UserService } from 'src/app/service/user.service';
 
 @Component({
   selector: 'app-verify',
   templateUrl: './verify.component.html',
-  styleUrls: ['./verify.component.css']
+  styleUrls: ['./verify.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class VerifyComponent implements OnInit {
   verifyState$: Observable<VerifyState>;
@@ -23,7 +25,7 @@ export class VerifyComponent implements OnInit {
   readonly DataState = DataState;
   private readonly ACCOUNT_KEY: string = 'key';
 
-  constructor(private activatedRoute: ActivatedRoute, private userService: UserService) { }
+  constructor(private activatedRoute: ActivatedRoute, private userService: UserService, private notificationService : NotificationService) { }
 
   ngOnInit(): void {
     this.verifyState$ = this.activatedRoute.paramMap.pipe(
@@ -34,11 +36,13 @@ export class VerifyComponent implements OnInit {
           .pipe(
             map(response => {
               console.log(response);
+              this.notificationService.onDefault(response.message);
               type === 'password' ? this.userSubject.next(response.data.user) : null;
               return { type: type, title: 'Verified!', dataState: DataState.LOADED, message: response.message, verifySuccess: true };
             }),
             startWith({ title: 'Verifying...', dataState: DataState.LOADING, message: 'Please wait while we verify the information', verifySuccess: false }),
             catchError((error: string) => {
+              this.notificationService.onError(error);
               return of({ title: 'An error ocur', dataState: DataState.ERROR, error: error, message: error, verifySuccess: false })
             })
           )
@@ -51,12 +55,14 @@ export class VerifyComponent implements OnInit {
     this.verifyState$ = this.userService.renewPassword$({ userId: this.userSubject.value.id, password: resetPasswordform.value.password, confirmPassword: resetPasswordform.value.confirmPassword })
       .pipe(
         map(response => {
+          this.notificationService.onDefault(response.message);
           console.log(response);
           this.isLoadingSubject.next(false);
           return { type: 'account' as AccountType, title: 'Success', dataState: DataState.LOADED, message: response.message, verifySuccess: true };
         }),
         startWith({ type: 'password' as AccountType, title: 'Verified!', dataState: DataState.LOADED, verifySuccess: false }),
         catchError((error: string) => {
+          this.notificationService.onError(error);
           this.isLoadingSubject.next(false);
           return of({ type: 'password' as AccountType, title: 'Verified!', dataState: DataState.LOADED, error, verifySuccess: true })
         })

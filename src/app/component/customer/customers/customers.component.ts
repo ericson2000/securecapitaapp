@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable, BehaviorSubject, map, startWith, catchError, of } from 'rxjs';
@@ -8,12 +8,14 @@ import { Customer } from 'src/app/interface/customer';
 import { State } from 'src/app/interface/state';
 import { User } from 'src/app/interface/user';
 import { CustomerService } from 'src/app/service/customer.service';
+import { NotificationService } from 'src/app/service/notification.service';
 import { UserService } from 'src/app/service/user.service';
 
 @Component({
   selector: 'app-customers',
   templateUrl: './customers.component.html',
-  styleUrls: ['./customers.component.css']
+  styleUrls: ['./customers.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CustomersComponent implements OnInit {
   customersState$: Observable<State<CustomHttpResponse<Page<Customer> & User>>>;
@@ -26,18 +28,20 @@ export class CustomersComponent implements OnInit {
   showLogs$ = this.showLogsSubject.asObservable();
   readonly DataState = DataState;
 
-  constructor(private router: Router,private userService: UserService, private customerService: CustomerService) { }
+  constructor(private router: Router,private userService: UserService, private customerService: CustomerService, private notificationService : NotificationService) { }
 
   ngOnInit(): void {
     this.customersState$ = this.customerService.searchCustomers$()
       .pipe(
         map(response => {
+          this.notificationService.onDefault(response.message);
           console.log(response);
           this.dataSubject.next(response);
           return { dataState: DataState.LOADED, appData: response };
         }),
         startWith({ dataState: DataState.LOADING }),
         catchError((error: string) => {
+          this.notificationService.onError(error);
           return of({ dataState: DataState.ERROR, error })
         })
       )

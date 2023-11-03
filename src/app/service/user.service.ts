@@ -6,9 +6,7 @@ import { AccountType, CustomHttpResponse, Profile } from '../interface/appstates
 import { User } from '../interface/user';
 import { Key } from '../enum/key.enum';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class UserService {
   private readonly server: string = 'http://localhost:9095';
   private jwtHelper = new JwtHelperService();
@@ -72,7 +70,7 @@ export class UserService {
       );
 
   update$ = (user: User) => <Observable<CustomHttpResponse<Profile>>>
-    this.http.patch<CustomHttpResponse<Profile>>
+    this.http.put<CustomHttpResponse<Profile>>
       (`${this.server}/users/update`, user)
       .pipe(
         tap(console.log),

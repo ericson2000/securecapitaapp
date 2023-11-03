@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { Observable, BehaviorSubject, map, startWith, catchError, of, switchMap } from 'rxjs';
@@ -10,13 +10,15 @@ import { State } from 'src/app/interface/state';
 import { User } from 'src/app/interface/user';
 import { CustomerService } from 'src/app/service/customer.service';
 import { jsPDF as pdf } from "jspdf";
+import { NotificationService } from 'src/app/service/notification.service';
 
 const INVOICE_ID: string = 'id';
 
 @Component({
   selector: 'app-invoice',
   templateUrl: './invoice-detail.component.html',
-  styleUrls: ['./invoice-detail.component.css']
+  styleUrls: ['./invoice-detail.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InvoiceDetailComponent implements OnInit {
   invoiceState$: Observable<State<CustomHttpResponse<Customer & Invoice & User>>>;
@@ -26,7 +28,7 @@ export class InvoiceDetailComponent implements OnInit {
 
   readonly DataState = DataState;
 
-  constructor(private activatedRoute: ActivatedRoute, private customerService: CustomerService) { }
+  constructor(private activatedRoute: ActivatedRoute, private customerService: CustomerService, private notificationService : NotificationService) { }
 
   ngOnInit(): void {
     this.invoiceState$ = this.activatedRoute.paramMap.pipe(
@@ -34,12 +36,14 @@ export class InvoiceDetailComponent implements OnInit {
         return this.customerService.invoice$(+params.get(INVOICE_ID))
           .pipe(
             map(response => {
+              this.notificationService.onDefault(response.message);
               console.log(response);
               this.dataSubject.next(response);
               return { dataState: DataState.LOADED, appData: response };
             }),
             startWith({ dataState: DataState.LOADING }),
             catchError((error: string) => {
+              this.notificationService.onError(error);
               return of({ dataState: DataState.ERROR, error })
             })
           )

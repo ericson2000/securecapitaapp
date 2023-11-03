@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BehaviorSubject, catchError, map, Observable, of, startWith } from 'rxjs';
@@ -6,11 +6,13 @@ import { LoginState } from 'src/app/interface/appstates';
 import { UserService } from 'src/app/service/user.service';
 import { DataState } from 'src/app/enum/datastate.enum';
 import { Key } from 'src/app/enum/key.enum';
+import { NotificationService } from 'src/app/service/notification.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent implements OnInit {
   loginState$: Observable<LoginState> = of({ dataState: DataState.LOADED });
@@ -18,7 +20,7 @@ export class LoginComponent implements OnInit {
   private emailSubject = new BehaviorSubject<string | null>(null);
   readonly DataState = DataState;
 
-  constructor(private router: Router, private userService: UserService) {}
+  constructor(private router: Router, private userService: UserService, private notificationService : NotificationService) {}
 
   ngOnInit(): void {
     this.userService.isAuthenticated() ? this.router.navigate(['/']) : this.router.navigate(['/login']);
@@ -31,6 +33,7 @@ export class LoginComponent implements OnInit {
       .pipe(
         map(response => {
           if (response.data.user.usingMfa) {
+            this.notificationService.onDefault(response.message);
             this.phoneSubject.next(response.data.user.phone);
             this.emailSubject.next(response.data.user.email);
             return {
@@ -38,6 +41,7 @@ export class LoginComponent implements OnInit {
               phone: response.data.user.phone.substring(response.data.user.phone.length - 4)
             };
           } else {
+            this.notificationService.onDefault(response.message);
             localStorage.setItem(Key.TOKEN, response.data.access_token);
             localStorage.setItem(Key.REFRESH_TOKEN, response.data.refresh_token);
             this.router.navigate(['/']);
@@ -46,6 +50,7 @@ export class LoginComponent implements OnInit {
         }),
         startWith({ dataState: DataState.LOADING, isUsingMfa: false }),
         catchError((error: string) => {
+          this.notificationService.onError(error);
           return of({ dataState: DataState.ERROR, isUsingMfa: false, loginSuccess: false, error })
         })
       )

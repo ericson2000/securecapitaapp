@@ -8,7 +8,7 @@ import { AuthModule } from './component/auth/auth.module';
 import { CustomerModule } from './component/customer/customer.module';
 import { HomeModule } from './component/home/home.module';
 import { InvoiceModule } from './component/invoice/invoice.module';
-import { UserModule } from './component/profile/user.module';
+import { NotificationModule } from './notification.module';
 
 
 @NgModule({
@@ -19,9 +19,9 @@ import { UserModule } from './component/profile/user.module';
     AuthModule,
     CustomerModule,
     InvoiceModule,
-    UserModule,
     HomeModule,
-    AppRoutingModule
+    AppRoutingModule,
+    NotificationModule
   ],
   bootstrap: [AppComponent]
 })

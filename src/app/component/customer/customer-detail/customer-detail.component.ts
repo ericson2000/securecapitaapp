@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ActivatedRoute, ParamMap, Route, Router } from '@angular/router';
 import { Observable, BehaviorSubject, map, startWith, catchError, of, switchMap } from 'rxjs';
@@ -7,11 +7,13 @@ import { CustomHttpResponse, Page, CustomerState } from 'src/app/interface/appst
 import { State } from 'src/app/interface/state';
 import { User } from 'src/app/interface/user';
 import { CustomerService } from 'src/app/service/customer.service';
+import { NotificationService } from 'src/app/service/notification.service';
 
 @Component({
   selector: 'app-customer',
   templateUrl: './customer-detail.component.html',
-  styleUrls: ['./customer-detail.component.css']
+  styleUrls: ['./customer-detail.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CustomerDetailComponent implements OnInit {
   customerState$: Observable<State<CustomHttpResponse<CustomerState>>>;
@@ -22,7 +24,7 @@ export class CustomerDetailComponent implements OnInit {
   readonly DataState = DataState;
   
 
-  constructor(private activatedRoute: ActivatedRoute, private customerService: CustomerService) { }
+  constructor(private activatedRoute: ActivatedRoute, private customerService: CustomerService, private notificationService : NotificationService) { }
 
   ngOnInit(): void {
     this.customerState$ = this.activatedRoute.paramMap.pipe(
@@ -30,12 +32,14 @@ export class CustomerDetailComponent implements OnInit {
         return this.customerService.customer$(+params.get(this.CUSTOMER_ID))
           .pipe(
             map(response => {
+              this.notificationService.onDefault(response.message);
               console.log(response);
               this.dataSubject.next(response);
               return { dataState: DataState.LOADED, appData: response };
             }),
             startWith({ dataState: DataState.LOADING }),
             catchError((error: string) => {
+              this.notificationService.onError(error);
               return of({ dataState: DataState.ERROR, error })
             })
           )
@@ -48,6 +52,7 @@ export class CustomerDetailComponent implements OnInit {
     this.customerState$ = this.customerService.update$(customerForm.value)
       .pipe(
         map(response => {
+          this.notificationService.onDefault(response.message);
           console.log(response);
           this.dataSubject.next({
             ...response,
@@ -64,6 +69,7 @@ export class CustomerDetailComponent implements OnInit {
         }),
         startWith({ dataState: DataState.LOADED, appData: this.dataSubject.value }),
         catchError((error: string) => {
+          this.notificationService.onError(error);
           this.isLoadingSubject.next(false);
           return of({ dataState: DataState.ERROR, error })
         })
