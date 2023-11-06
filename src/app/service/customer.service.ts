@@ -3,14 +3,14 @@ import { HttpClient, HttpErrorResponse, HttpEvent, HttpHeaders } from '@angular/
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { CustomHttpResponse, Page, Profile, CustomerState } from '../interface/appstates';
 import { User } from '../interface/user';
-import { Key } from '../enum/key.enum';
 import { Stats } from '../interface/stats';
 import { Customer } from '../interface/customer';
 import { Invoice } from '../interface/invoice';
+import { environment } from 'src/environments/environment';
 
 @Injectable()
 export class CustomerService {
-    private readonly server: string = 'http://localhost:9095';
+    private readonly server: string = environment.API_BASE_URL;
 
     constructor(private http: HttpClient) { }
 

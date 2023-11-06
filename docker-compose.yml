@@ -1,0 +1,16 @@
+version: '3'
+services:
+  securecapitaap:
+    container_name: securecapitaapcontainer
+    build: .
+    image: securecapitaap:v1
+    ports:
+      -80:80
+    expose:
+      - 80
+    networks:
+      - internalnet
+
+networks:
+  internalnet:
+    driver: bridge

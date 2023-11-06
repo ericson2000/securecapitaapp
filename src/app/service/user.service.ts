@@ -1,14 +1,15 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { JwtHelperService } from '@auth0/angular-jwt';
 import { AccountType, CustomHttpResponse, Profile } from '../interface/appstates';
 import { User } from '../interface/user';
 import { Key } from '../enum/key.enum';
+import { environment } from 'src/environments/environment';
 
 @Injectable()
 export class UserService {
-  private readonly server: string = 'http://localhost:9095';
+  private readonly server: string = environment.API_BASE_URL;
   private jwtHelper = new JwtHelperService();
 
   constructor(private http: HttpClient) { }
